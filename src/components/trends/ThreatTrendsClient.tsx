@@ -10,127 +10,159 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 
-interface MalwareBlock {
-  title: string;
-  points: string[];
-  severity?: 'critical' | 'high' | 'medium' | 'low';
+interface ThreatData {
+  number: number;
+  name: string;
+  type: string;
+  attackMethod: string[];
+  protection: string[];
 }
 
-const getSeverity = (points: string[]): 'critical' | 'high' | 'medium' | 'low' => {
-  const text = points.join(' ').toLowerCase();
-  if (text.includes('critical') || text.includes('ransomware') || text.includes('zero-day')) return 'critical';
-  if (text.includes('high') || text.includes('exploit') || text.includes('vulnerability')) return 'high';
-  if (text.includes('medium') || text.includes('phishing')) return 'medium';
-  return 'low';
-};
-
-const severityConfig = {
-  critical: {
-    color: 'text-red-500',
+const threatColors = [
+  {
     bg: 'bg-red-500/10',
     border: 'border-red-500/50',
+    text: 'text-red-500',
     glow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)]',
-    label: 'CRITICAL',
-    icon: Zap,
   },
-  high: {
-    color: 'text-orange-500',
+  {
     bg: 'bg-orange-500/10',
     border: 'border-orange-500/50',
+    text: 'text-orange-500',
     glow: 'shadow-[0_0_15px_rgba(249,115,22,0.3)]',
-    label: 'HIGH',
-    icon: AlertTriangle,
   },
-  medium: {
-    color: 'text-yellow-500',
+  {
     bg: 'bg-yellow-500/10',
     border: 'border-yellow-500/50',
+    text: 'text-yellow-500',
     glow: 'shadow-[0_0_10px_rgba(234,179,8,0.3)]',
-    label: 'MEDIUM',
-    icon: Target,
   },
-  low: {
-    color: 'text-blue-500',
+  {
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/50',
+    text: 'text-blue-500',
     glow: 'shadow-[0_0_10px_rgba(59,130,246,0.3)]',
-    label: 'LOW',
-    icon: Activity,
   },
-};
+];
 
-const parseSummary = (summaryText: string | undefined | any): { blocks: MalwareBlock[]; generalContent: string[] } => {
+const parseSummary = (summaryText: string | undefined | any): ThreatData[] => {
   if (!summaryText) {
-    return { blocks: [], generalContent: [] };
+    return [];
   }
 
-  // Ensure summaryText is a string
   const textToProcess = typeof summaryText === 'string' ? summaryText : String(summaryText);
-
-  const blocks: MalwareBlock[] = [];
-  let currentBlock: MalwareBlock | null = null;
-  const generalContentLines: string[] = [];
-  const lines = textToProcess.split('\n');
-
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    // Regex to capture titles like "MalwareNameX:" or "- MalwareNameX:"
-    const malwareHeaderMatch = trimmedLine.match(/^(?:- *)?([A-Za-z0-9\s_().-]+):$/);
-    const bulletMatch = line.match(/^\s*[\*\-]\s+(.*)/);
-
-    if (malwareHeaderMatch) {
-      if (currentBlock) {
-        blocks.push(currentBlock);
+  const threats: ThreatData[] = [];
+  
+  // Split by "Threat X:" pattern and keep the threat number
+  const threatMatches = textToProcess.matchAll(/Threat (\d+):([\s\S]*?)(?=Threat \d+:|$)/gi);
+  
+  for (const match of threatMatches) {
+    const threatNumber = parseInt(match[1]);
+    if (threatNumber > 4) break; // Only process first 4 threats
+    
+    const block = match[2];
+    const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+    
+    let name = '';
+    let type = 'Unknown';
+    const attackMethod: string[] = [];
+    const protection: string[] = [];
+    
+    let currentSection = '';
+    let foundName = false;
+    
+    for (const line of lines) {
+      // Skip empty lines
+      if (!line) continue;
+      
+      // Extract threat name (first non-section line)
+      if (!foundName && !line.startsWith('-') && !line.startsWith('*') && 
+          !line.toLowerCase().includes('type:') && 
+          !line.toLowerCase().includes('attack method') && 
+          !line.toLowerCase().includes('protection')) {
+        name = line.replace(/^[:\-\*]\s*/, '').trim();
+        foundName = true;
+        continue;
       }
-      currentBlock = { title: malwareHeaderMatch[1].trim(), points: [] };
-    } else if (bulletMatch && currentBlock) {
-      currentBlock.points.push(bulletMatch[1].trim());
-    } else if (trimmedLine !== '') {
-      // If a line is not a header or a bullet under a current block,
-      // and currentBlock exists, finalize currentBlock.
-      // Then, treat this line as general content.
-      if (currentBlock) {
-        blocks.push(currentBlock);
-        currentBlock = null; 
+      
+      // Detect sections
+      if (line.toLowerCase().includes('type:') || line.toLowerCase().includes('class:')) {
+        const parts = line.split(':');
+        if (parts.length > 1) {
+          type = parts[1].trim();
+        }
+        currentSection = '';
+      } else if (line.toLowerCase().includes('attack method')) {
+        currentSection = 'attack';
+      } else if (line.toLowerCase().includes('protection') || line.toLowerCase().includes('stay safe')) {
+        currentSection = 'protection';
+      } else if (line.startsWith('*') || line.startsWith('-')) {
+        // Extract bullet point
+        const point = line.replace(/^[\*\-]\s*/, '').trim();
+        if (point) {
+          if (currentSection === 'attack') {
+            attackMethod.push(point);
+          } else if (currentSection === 'protection') {
+            protection.push(point);
+          }
+        }
       }
-      generalContentLines.push(trimmedLine);
     }
+    
+    // Use threat number from regex if name not found
+    if (!name) {
+      name = `Malware Threat ${threatNumber}`;
+    }
+    
+    threats.push({
+      number: threatNumber,
+      name,
+      type: type || 'Unknown',
+      attackMethod: attackMethod.length > 0 ? attackMethod : ['Information not available'],
+      protection: protection.length > 0 ? protection : ['Stay vigilant and keep systems updated'],
+    });
   }
-
-  if (currentBlock) {
-    blocks.push(currentBlock);
+  
+  // Sort by threat number
+  threats.sort((a, b) => a.number - b.number);
+  
+  // Ensure we always have exactly 4 threats
+  while (threats.length < 4) {
+    threats.push({
+      number: threats.length + 1,
+      name: `Analyzing Threat ${threats.length + 1}`,
+      type: 'Pending Analysis',
+      attackMethod: ['Data being collected from threat intelligence sources...'],
+      protection: ['Stay updated with latest security patches'],
+    });
   }
-
-  return { blocks, generalContent: generalContentLines };
+  
+  return threats.slice(0, 4);
 };
 
 export function ThreatTrendsClient() {
   const [summaryData, setSummaryData] = useState<SummarizeMalwareTrendsOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Start loading on mount
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [parsedOutput, setParsedOutput] = useState<{ blocks: MalwareBlock[]; generalContent: string[] }>({ blocks: [], generalContent: [] });
+  const [threats, setThreats] = useState<ThreatData[]>([]);
 
   const fetchTrends = async () => {
     setIsLoading(true);
     setError(null);
     setSummaryData(null);
-    setParsedOutput({ blocks: [], generalContent: [] });
+    setThreats([]);
     
     try {
-      const result = await summarizeMalwareTrends({ query: 'newly emerging malware families, notable recent incidents, and their attack tactics' }); 
+      const result = await summarizeMalwareTrends({ query: 'top 4 current malware threats' }); 
       console.log('[ThreatTrendsClient] Received result:', result);
-      console.log('[ThreatTrendsClient] Summary type:', typeof result?.summary);
-      console.log('[ThreatTrendsClient] Summary value:', result?.summary);
       
       setSummaryData(result);
       if (result && result.summary) {
-        setParsedOutput(parseSummary(result.summary));
-      } else if (result && !result.summary) {
-         setError('AI returned an empty summary for malware trends.');
-         setParsedOutput({ blocks: [], generalContent: [] });
+        const parsedThreats = parseSummary(result.summary);
+        setThreats(parsedThreats);
       } else {
-        setError('Failed to retrieve data from the AI model.');
-        setParsedOutput({ blocks: [], generalContent: [] });
+        setError('AI returned an empty summary for malware trends.');
+        setThreats([]);
       }
     } catch (err: any) {
       console.error('[ThreatTrendsClient] Error fetching malware trends:', err);
@@ -148,7 +180,7 @@ export function ThreatTrendsClient() {
         detailedError = err.error;
       }
       setError(detailedError);
-      setParsedOutput({ blocks: [], generalContent: [] });
+      setThreats([]);
     } finally {
       setIsLoading(false);
     }
@@ -184,13 +216,13 @@ export function ThreatTrendsClient() {
     );
   }
 
-  if (!summaryData || (!parsedOutput.blocks.length && !parsedOutput.generalContent.length)) {
+  if (!summaryData || threats.length === 0) {
     return (
       <Alert>
         <Info className="h-5 w-5" />
         <AlertTitle>No Data Available</AlertTitle>
         <AlertDescription>
-        Could not retrieve or parse threat summary at this time, or the summary was empty.
+        Could not retrieve threat intelligence at this time.
         <Button onClick={fetchTrends} variant="outline" size="sm" className="mt-4">
             Refresh Data
           </Button>
@@ -199,41 +231,14 @@ export function ThreatTrendsClient() {
     );
   }
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.5,
-        ease: 'easeOut',
-      },
-    },
-  };
-
   return (
-    <motion.div 
-      className="space-y-8 max-w-7xl mx-auto"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header Section */}
       <motion.div 
         className="cosmic-card p-6 border-2 border-accent/20 relative overflow-hidden"
-        variants={itemVariants}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-accent/10 to-transparent rounded-full blur-3xl" />
         <div className="flex items-center justify-between relative">
@@ -243,13 +248,13 @@ export function ThreatTrendsClient() {
               whileHover={{ rotate: 360, scale: 1.1 }}
               transition={{ duration: 0.6 }}
             >
-              <TrendingUp className="h-8 w-8 text-accent" />
+              <Shield className="h-8 w-8 text-accent" />
             </motion.div>
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-glow">Global Threat Intelligence</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-glow">Top 4 Current Threats</h2>
               <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1.5">
                 <Clock className="h-4 w-4" />
-                Real-time AI-powered analysis • Last updated: {new Date().toLocaleTimeString()}
+                Stay informed • Protect yourself • Updated: {new Date().toLocaleTimeString()}
               </p>
             </div>
           </div>
@@ -260,156 +265,105 @@ export function ThreatTrendsClient() {
               disabled={isLoading}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? 'Scanning...' : 'Refresh Intel'}
+              {isLoading ? 'Updating...' : 'Refresh'}
             </Button>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Threat Cards Grid */}
-      <div className="grid gap-6">
-        {parsedOutput.blocks.map((block, index) => {
-          const severity = getSeverity(block.points);
-          const config = severityConfig[severity];
-          const SeverityIcon = config.icon;
-
+      {/* Threat Boxes - 2x2 Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {threats.map((threat, index) => {
+          const colorConfig = threatColors[index];
+          
           return (
-            <motion.div key={index} variants={itemVariants}>
-              <motion.div
-                whileHover={{ scale: 1.02, y: -5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className={`cosmic-card relative overflow-hidden border-l-4 ${config.border} ${config.glow} hover:shadow-2xl transition-all duration-300`}>
-                  {/* Gradient Background */}
-                  <div className={`absolute top-0 right-0 w-48 h-48 ${config.bg} rounded-full blur-3xl opacity-50`} />
-                  
-                  <CardHeader className="relative pb-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-4 flex-1">
-                        <motion.div 
-                          className={`p-3 rounded-xl ${config.bg} border ${config.border}`}
-                          whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <Shield className={`h-6 w-6 ${config.color}`} />
-                        </motion.div>
-                        <div className="flex-1">
-                          <CardTitle className="text-2xl font-bold text-foreground mb-2">
-                            {block.title}
-                          </CardTitle>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <Badge className={`${config.bg} ${config.color} border ${config.border} font-bold px-3 py-1`}>
-                              <SeverityIcon className="h-3 w-3 mr-1.5" />
-                              {config.label} SEVERITY
-                            </Badge>
-                            <Badge variant="outline" className="text-muted-foreground">
-                              Threat #{index + 1}
-                            </Badge>
-                            <Badge variant="outline" className="text-muted-foreground">
-                              {block.points.length} Indicators
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="relative">
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Target className="h-4 w-4" />
-                        Attack Vectors & Tactics
-                      </h4>
-                      {block.points.map((point, i) => (
-                        <motion.div 
-                          key={i}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.1 }}
-                          whileHover={{ x: 5, scale: 1.01 }}
-                          className="group"
-                        >
-                          <div className="flex gap-3 p-4 rounded-lg bg-muted/20 hover:bg-muted/40 transition-all border border-border/30 hover:border-border/60">
-                            <div className="flex-shrink-0 mt-1">
-                              <div className={`w-2 h-2 rounded-full ${config.color} animate-pulse`} />
-                            </div>
-                            <p className="text-sm leading-relaxed text-foreground font-medium">
-                              {point}
-                            </p>
-                          </div>
-                        </motion.div>
+            <motion.div
+              key={threat.number}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              whileHover={{ scale: 1.03, y: -5 }}
+            >
+              <Card className={`cosmic-card relative overflow-hidden border-l-4 ${colorConfig.border} ${colorConfig.glow} h-full`}>
+                {/* Gradient Background */}
+                <div className={`absolute top-0 right-0 w-32 h-32 ${colorConfig.bg} rounded-full blur-2xl opacity-50`} />
+                
+                {/* Number Badge */}
+                <div className={`absolute top-4 right-4 w-12 h-12 rounded-full ${colorConfig.bg} border-2 ${colorConfig.border} flex items-center justify-center`}>
+                  <span className={`text-2xl font-bold ${colorConfig.text}`}>{threat.number}</span>
+                </div>
+                
+                <CardHeader className="relative pb-3">
+                  <CardTitle className="text-xl font-bold text-foreground pr-16">
+                    {threat.name}
+                  </CardTitle>
+                  <Badge className={`${colorConfig.bg} ${colorConfig.text} border ${colorConfig.border} w-fit mt-2`}>
+                    {threat.type}
+                  </Badge>
+                </CardHeader>
+                
+                <CardContent className="relative space-y-4">
+                  {/* Attack Method */}
+                  <div>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Target className="h-3.5 w-3.5" />
+                      How It Attacks
+                    </h4>
+                    <ul className="space-y-1.5">
+                      {threat.attackMethod.map((method, i) => (
+                        <li key={i} className="flex gap-2 text-sm text-foreground/90">
+                          <span className={`${colorConfig.text} mt-1`}>•</span>
+                          <span>{method}</span>
+                        </li>
                       ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                    </ul>
+                  </div>
+                  
+                  {/* Protection */}
+                  <div>
+                    <h4 className="text-xs font-bold text-green-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5" />
+                      Stay Protected
+                    </h4>
+                    <ul className="space-y-1.5">
+                      {threat.protection.map((tip, i) => (
+                        <li key={i} className="flex gap-2 text-sm text-foreground/90">
+                          <span className="text-green-500 mt-1">✓</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Strategic Outlook Section */}
-      {parsedOutput.generalContent.length > 0 && (
-        <motion.div variants={itemVariants}>
-          <Card className="cosmic-card border-2 border-primary/30 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-            <CardHeader className="relative">
-              <CardTitle className="text-2xl font-bold flex items-center gap-3">
-                <motion.div 
-                  className="p-3 rounded-xl bg-primary/10 border border-primary/30"
-                  whileHover={{ rotate: 360, scale: 1.1 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <Info className="h-6 w-6 text-primary" />
-                </motion.div>
-                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                  Strategic Intelligence Outlook
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="relative">
-              <div className="space-y-4">
-                {parsedOutput.generalContent.map((line, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    whileHover={{ scale: 1.01, x: 5 }}
-                    className="p-5 rounded-xl bg-card/60 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-all"
-                  >
-                    <p className="text-base leading-relaxed text-foreground">
-                      {line}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      {/* Footer Intelligence Badge */}
+      {/* Footer */}
       <motion.div 
-        variants={itemVariants}
-        className="cosmic-card p-6 border border-accent/20 relative overflow-hidden"
+        className="cosmic-card p-4 border border-accent/20 relative overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-primary/5 to-accent/5" />
-        <div className="relative flex items-center justify-center gap-3 text-center">
+        <div className="relative flex items-center justify-center gap-3 text-center flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-sm font-semibold text-foreground">Live Intelligence Feed</span>
+            <span className="text-sm font-semibold text-foreground">Live Threat Intelligence</span>
           </div>
           <span className="text-muted-foreground">•</span>
           <span className="text-sm text-muted-foreground">
-            Powered by AI • Global Threat Database
+            AI-Powered Analysis
           </span>
           <span className="text-muted-foreground">•</span>
           <span className="text-sm text-accent font-medium">
-            {parsedOutput.blocks.length} Active Threats Detected
+            4 Active Threats Monitored
           </span>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
