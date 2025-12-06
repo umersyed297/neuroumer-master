@@ -149,8 +149,8 @@ export default function ReportCenterPage() {
 
     const [sortField, sortDirection] = sortOption.split('_') as [keyof SavedReport, 'asc' | 'desc'];
     reports.sort((a, b) => {
-      let valA = a[sortField];
-      let valB = b[sortField];
+      let valA: any = a[sortField];
+      let valB: any = b[sortField];
 
       if (valA instanceof Date && valB instanceof Date) {
         return sortDirection === 'asc' ? valA.getTime() - valB.getTime() : valB.getTime() - valA.getTime();
@@ -162,8 +162,8 @@ export default function ReportCenterPage() {
       if (valA === null || valA === undefined) valA = sortDirection === 'asc' ? Infinity : -Infinity;
       if (valB === null || valB === undefined) valB = sortDirection === 'asc' ? Infinity : -Infinity;
       
-      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+      if (valA != null && valB != null && valA < valB) return sortDirection === 'asc' ? -1 : 1;
+      if (valA != null && valB != null && valA > valB) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
 
@@ -173,18 +173,18 @@ export default function ReportCenterPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6 md:gap-8">
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
-              <FileText className="h-8 w-8" />
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+              <FileText className="h-6 w-6 sm:h-8 sm:w-8" />
               Scan Report Archive
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               Access, filter, and manage your past scan reports.
             </p>
           </div>
-           <Button onClick={fetchReports} variant="outline" disabled={isLoadingReports}>
+           <Button onClick={fetchReports} variant="outline" disabled={isLoadingReports} className="text-sm sm:text-base">
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingReports ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -194,11 +194,11 @@ export default function ReportCenterPage() {
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <CardTitle className="text-xl">Archived Intelligence</CardTitle>
-                    <CardDescription>Browse your generated scan reports.</CardDescription>
+                    <CardTitle className="text-lg sm:text-xl">Archived Intelligence</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Browse your generated scan reports.</CardDescription>
                 </div>
             </div>
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
                 <Input 
                   type="search" 
                   placeholder="Search target, type, threat..." 

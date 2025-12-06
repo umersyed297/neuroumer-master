@@ -117,12 +117,12 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6 md:gap-8">
         <header>
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
-            <UserCircle className="h-8 w-8" /> Operative Profile
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+            <UserCircle className="h-6 w-6 sm:h-8 sm:w-8" /> Operative Profile
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Manage your NeuroShield identity and preferences.
           </p>
         </header>

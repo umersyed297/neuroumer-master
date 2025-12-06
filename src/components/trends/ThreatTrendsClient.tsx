@@ -235,36 +235,38 @@ export function ThreatTrendsClient() {
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header Section */}
       <motion.div 
-        className="cosmic-card p-6 border-2 border-accent/20 relative overflow-hidden"
+        className="cosmic-card p-3 sm:p-4 md:p-6 border-2 border-accent/20 relative overflow-hidden"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-accent/10 to-transparent rounded-full blur-3xl" />
-        <div className="flex items-center justify-between relative">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 relative">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-full sm:w-auto">
             <motion.div 
-              className="p-3 rounded-xl bg-accent/10 border border-accent/30"
+              className="p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl bg-accent/10 border border-accent/30 flex-shrink-0"
               whileHover={{ rotate: 360, scale: 1.1 }}
               transition={{ duration: 0.6 }}
             >
-              <Shield className="h-8 w-8 text-accent" />
+              <Shield className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-accent" />
             </motion.div>
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-glow">Top 4 Current Threats</h2>
-              <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1.5">
-                <Clock className="h-4 w-4" />
-                Stay informed • Protect yourself • Updated: {new Date().toLocaleTimeString()}
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-glow break-words">Top 4 Current Threats</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 sm:gap-1.5 md:gap-2 mt-0.5 sm:mt-1 flex-wrap">
+                <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+                <span className="hidden md:inline">Stay informed • Protect yourself •</span>
+                <span className="text-xs">Updated: {new Date().toLocaleTimeString()}</span>
               </p>
             </div>
           </div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto flex-shrink-0">
             <Button 
               onClick={fetchTrends} 
-              className="btn-glow bg-accent hover:bg-accent/90 text-white"
+              className="btn-glow bg-accent hover:bg-accent/90 text-white w-full sm:w-auto text-sm"
               disabled={isLoading}
+              size="sm"
             >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <Loader2 className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />}
               {isLoading ? 'Updating...' : 'Refresh'}
             </Button>
           </motion.div>
@@ -272,7 +274,7 @@ export function ThreatTrendsClient() {
       </motion.div>
 
       {/* Threat Boxes - 2x2 Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
         {threats.map((threat, index) => {
           const colorConfig = threatColors[index];
           
@@ -284,36 +286,36 @@ export function ThreatTrendsClient() {
               transition={{ delay: index * 0.1, duration: 0.4 }}
               whileHover={{ scale: 1.03, y: -5 }}
             >
-              <Card className={`cosmic-card relative overflow-hidden border-l-4 ${colorConfig.border} ${colorConfig.glow} h-full`}>
+              <Card className={`cosmic-card relative overflow-hidden border-l-3 sm:border-l-4 ${colorConfig.border} ${colorConfig.glow} h-full`}>
                 {/* Gradient Background */}
-                <div className={`absolute top-0 right-0 w-32 h-32 ${colorConfig.bg} rounded-full blur-2xl opacity-50`} />
+                <div className={`absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 ${colorConfig.bg} rounded-full blur-2xl opacity-50`} />
                 
                 {/* Number Badge */}
-                <div className={`absolute top-4 right-4 w-12 h-12 rounded-full ${colorConfig.bg} border-2 ${colorConfig.border} flex items-center justify-center`}>
-                  <span className={`text-2xl font-bold ${colorConfig.text}`}>{threat.number}</span>
+                <div className={`absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full ${colorConfig.bg} border-2 ${colorConfig.border} flex items-center justify-center flex-shrink-0`}>
+                  <span className={`text-base sm:text-xl md:text-2xl font-bold ${colorConfig.text}`}>{threat.number}</span>
                 </div>
                 
-                <CardHeader className="relative pb-3">
-                  <CardTitle className="text-xl font-bold text-foreground pr-16">
+                <CardHeader className="relative pb-2 sm:pb-3 pr-11 sm:pr-14 md:pr-16 p-3 sm:p-4 md:p-6">
+                  <CardTitle className="text-base sm:text-lg md:text-xl font-bold text-foreground break-words leading-tight">
                     {threat.name}
                   </CardTitle>
-                  <Badge className={`${colorConfig.bg} ${colorConfig.text} border ${colorConfig.border} w-fit mt-2`}>
+                  <Badge className={`${colorConfig.bg} ${colorConfig.text} border ${colorConfig.border} w-fit mt-1.5 sm:mt-2 text-[10px] sm:text-xs px-2 py-0.5`}>
                     {threat.type}
                   </Badge>
                 </CardHeader>
                 
-                <CardContent className="relative space-y-4">
+                <CardContent className="relative space-y-2.5 sm:space-y-3 md:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
                   {/* Attack Method */}
                   <div>
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Target className="h-3.5 w-3.5" />
-                      How It Attacks
+                    <h4 className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 sm:mb-2 flex items-center gap-1">
+                      <Target className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+                      <span>How It Attacks</span>
                     </h4>
-                    <ul className="space-y-1.5">
+                    <ul className="space-y-1 sm:space-y-1.5">
                       {threat.attackMethod.map((method, i) => (
-                        <li key={i} className="flex gap-2 text-sm text-foreground/90">
-                          <span className={`${colorConfig.text} mt-1`}>•</span>
-                          <span>{method}</span>
+                        <li key={i} className="flex gap-1.5 sm:gap-2 text-[11px] sm:text-xs md:text-sm text-foreground/90 leading-snug">
+                          <span className={`${colorConfig.text} mt-0.5 sm:mt-1 flex-shrink-0 text-xs sm:text-sm`}>•</span>
+                          <span className="break-words">{method}</span>
                         </li>
                       ))}
                     </ul>
@@ -321,15 +323,15 @@ export function ThreatTrendsClient() {
                   
                   {/* Protection */}
                   <div>
-                    <h4 className="text-xs font-bold text-green-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Shield className="h-3.5 w-3.5" />
-                      Stay Protected
+                    <h4 className="text-[10px] sm:text-xs font-bold text-green-500 uppercase tracking-wider mb-1.5 sm:mb-2 flex items-center gap-1">
+                      <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+                      <span>Stay Protected</span>
                     </h4>
-                    <ul className="space-y-1.5">
+                    <ul className="space-y-1 sm:space-y-1.5">
                       {threat.protection.map((tip, i) => (
-                        <li key={i} className="flex gap-2 text-sm text-foreground/90">
-                          <span className="text-green-500 mt-1">✓</span>
-                          <span>{tip}</span>
+                        <li key={i} className="flex gap-1.5 sm:gap-2 text-[11px] sm:text-xs md:text-sm text-foreground/90 leading-snug">
+                          <span className="text-green-500 mt-0.5 sm:mt-1 flex-shrink-0 text-xs sm:text-sm">✓</span>
+                          <span className="break-words">{tip}</span>
                         </li>
                       ))}
                     </ul>

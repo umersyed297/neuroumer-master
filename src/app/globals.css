@@ -89,9 +89,16 @@
   }
   body {
     @apply bg-background text-foreground font-mono;
+    width: 100%;
+    overflow-x: hidden;
     /* Optional: Remove or keep grid background based on preference for "simple" */
     /* background-image: linear-gradient(rgba(var(--foreground-rgb), 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--foreground-rgb), 0.03) 1px, transparent 1px); */
     /* background-size: 20px 20px; */
+  }
+  
+  html {
+    width: 100%;
+    overflow-x: hidden;
   }
 }
 
@@ -148,5 +155,20 @@
 
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* Mobile responsive utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

@@ -34,6 +34,8 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { MaintenanceDialog } from '@/components/layout/MaintenanceDialog';
+import { MobileHeader } from '@/components/layout/MobileHeader';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 
 const STATIC_PROFILE_PIC_URL = '/images/rr.png';
 
@@ -87,7 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isAuthPage = pathname.startsWith('/auth/');
 
   // Show maintenance dialog if maintenance mode is on and user is not an admin
-  const showMaintenance = settings?.maintenanceMode && !isAdmin && user;
+  const showMaintenance = Boolean(settings?.maintenanceMode && !isAdmin && user);
 
   // 1. If auth is still loading (initial check or during login/logout/signup),
   //    and we are NOT on an auth page, show a global loader.
@@ -164,6 +166,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // --- Main AppShell UI for authenticated users on protected routes ---
   console.log('[AppShell] Render Case 7: Rendering main application shell UI for user:', user.uid, 'on path:', pathname);
+  
+  // Mobile-only layout
+  if (isMobile) {
+    return (
+      <div className="w-full min-h-screen">
+        <MaintenanceDialog isOpen={showMaintenance} />
+        <MobileHeader user={user} isAdmin={isAdmin} onLogout={logout} />
+        <main className="pb-20 pt-4 px-3 min-h-screen bg-background w-full max-w-full">
+          {children}
+        </main>
+        <MobileBottomNav />
+      </div>
+    );
+  }
+
+  // Desktop layout with sidebar
   return (
     <>
       <MaintenanceDialog isOpen={showMaintenance} />
@@ -213,14 +231,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </Sidebar>
 
       <SidebarInset className="flex flex-col flex-1">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 shadow-sm">
-          <SidebarTrigger className="md:hidden" />
-          <div className="flex-1">
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-2 sm:gap-4 border-b bg-background/80 backdrop-blur-sm px-3 sm:px-6 shadow-sm">
+          <SidebarTrigger className="lg:hidden flex-shrink-0 -ml-2" aria-label="Toggle sidebar" />
+          <div className="flex-1 min-w-0">
             {/* Optional: Breadcrumbs or Page Title can go here */}
           </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <Button variant="ghost" size="icon" className="rounded-full" aria-label="Search">
-              <Search className="h-5 w-5" />
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+            <Button variant="ghost" size="icon" className="rounded-full hidden sm:flex" aria-label="Search">
+              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="sr-only">Search</span>
             </Button>
 
@@ -232,12 +250,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 aria-label={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
               >
-                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {theme === 'dark' ? <Sun className="h-4 w-4 sm:h-5 sm:w-5" /> : <Moon className="h-4 w-4 sm:h-5 sm:w-5" />}
               </Button>
             )}
 
-            <Button variant="ghost" size="icon" className="rounded-full" aria-label="Notifications">
-              <Bell className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="rounded-full hidden sm:flex" aria-label="Notifications">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="sr-only">Notifications</span>
             </Button>
             {authLoading ? ( 
@@ -251,7 +269,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </header>
-        <main className="flex-1 p-6 overflow-auto bg-background">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto bg-background">
           {children}
         </main>
       </SidebarInset>

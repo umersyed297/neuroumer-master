@@ -158,20 +158,20 @@ export default function UrlScanPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6 md:gap-8">
         <header>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">URL Threat Analysis</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">URL Threat Analysis</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Enter a URL for analysis.
           </p>
         </header>
 
         <Card className="shadow-xl border-primary/20 card-hover-effect-primary">
           <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Globe className="h-6 w-6 text-primary" /> URL Analysis Input
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <Globe className="h-5 w-5 sm:h-6 sm:w-6 text-primary" /> URL Analysis Input
             </CardTitle>
-            <CardDescription>Provide the full URL (e.g., https://example.com) for analysis.</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Provide the full URL (e.g., https://example.com) for analysis.</CardDescription>
           </CardHeader>
           <CardContent>
             <UrlScannerForm onSubmit={handleUrlSubmit} isScanning={scanStatus === 'scanning'} />
@@ -181,13 +181,13 @@ export default function UrlScanPage() {
         {scanStatus === 'scanning' && scannedUrl && (
           <Card className="shadow-lg border-accent/20 card-hover-effect-accent">
             <CardHeader>
-              <CardTitle className="text-xl text-accent">Scan In Progress</CardTitle>
+              <CardTitle className="text-lg sm:text-xl text-accent">Scan In Progress</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-lg font-semibold">Scanning URL: <span className="text-accent break-all">{scannedUrl}</span></p>
-                <p className="text-muted-foreground">Cross-referencing security databases... This may take a moment.</p>
+              <div className="flex flex-col items-center justify-center py-8 sm:py-10 text-center px-2">
+                <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-primary mb-4" />
+                <p className="text-base sm:text-lg font-semibold">Scanning URL: <span className="text-accent break-all">{scannedUrl}</span></p>
+                <p className="text-muted-foreground text-sm sm:text-base mt-2">Cross-referencing security databases... This may take a moment.</p>
                  <div className="w-full bg-muted rounded-full h-2.5 mt-4 overflow-hidden">
                   <div className="bg-primary h-2.5 rounded-full animate-pulse" style={{ width: '60%' }}></div>
                 </div>
@@ -199,26 +199,26 @@ export default function UrlScanPage() {
         {scanStatus === 'completed' && scanResult && !scanResult.error && (
           <Card className="shadow-lg border-green-500/30 card-hover-effect-primary">
             <CardHeader>
-               <div className="flex justify-between items-start">
-                <CardTitle className="text-xl text-green-400">Scan Complete</CardTitle>
+               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                <CardTitle className="text-lg sm:text-xl text-green-400">Scan Complete</CardTitle>
                  {scanResult.threatLabel && (
-                   <Badge variant={getThreatBadgeVariant(scanResult.threatLabel)} className="text-sm flex items-center">
+                   <Badge variant={getThreatBadgeVariant(scanResult.threatLabel)} className="text-xs sm:text-sm flex items-center w-fit">
                       {getThreatIcon(scanResult.threatLabel)}
                      <span>{scanResult.threatLabel}</span>
                    </Badge>
                  )}
               </div>
-              <CardDescription>Analysis for: <span className="font-semibold text-foreground break-all">{scanResult.submittedUrl}</span></CardDescription>
+              <CardDescription className="text-xs sm:text-sm break-all">Analysis for: <span className="font-semibold text-foreground">{scanResult.submittedUrl}</span></CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p><strong className="text-primary">Detections:</strong> {scanResult.stats?.malicious ?? 'N/A'} malicious / { (scanResult.stats?.harmless ?? 0) + (scanResult.stats?.malicious ?? 0) + (scanResult.stats?.suspicious ?? 0) + (scanResult.stats?.timeout ?? 0) + (scanResult.stats?.undetected ?? 0)} total vendors</p>
+            <CardContent className="space-y-3 sm:space-y-4">
+              <p className="text-sm sm:text-base"><strong className="text-primary">Detections:</strong> {scanResult.stats?.malicious ?? 'N/A'} malicious / { (scanResult.stats?.harmless ?? 0) + (scanResult.stats?.malicious ?? 0) + (scanResult.stats?.suspicious ?? 0) + (scanResult.stats?.timeout ?? 0) + (scanResult.stats?.undetected ?? 0)} total vendors</p>
               {scanResult.scanDate && ( 
-                <p><strong className="text-primary">Scan Date:</strong> {new Date(scanResult.scanDate * 1000).toLocaleString()}</p>
+                <p className="text-sm sm:text-base"><strong className="text-primary">Scan Date:</strong> {new Date(scanResult.scanDate * 1000).toLocaleString()}</p>
               )}
               <div className="flex flex-wrap gap-2 mt-4">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button className="btn-glow flex-grow sm:flex-grow-0" variant="default" disabled={!scanResult || (scanResult.status !== 'completed' && !scanResult.analysisId) || !!scanResult.error}>
+                        <Button className="btn-glow w-full sm:w-auto text-sm sm:text-base" variant="default" disabled={!scanResult || (scanResult.status !== 'completed' && !scanResult.analysisId) || !!scanResult.error}>
                             <FileDown className="mr-2 h-4 w-4" /> Download Report
                         </Button>
                     </DropdownMenuTrigger>

@@ -7,24 +7,24 @@ import { TrendingUp, BrainCircuit } from 'lucide-react';
 export default function ThreatTrendsPage() {
   return (
     <AppShell>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6 md:gap-8">
         <header>
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
-            <TrendingUp className="h-8 w-8" />
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+            <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8" />
             Global Malware Threatscape
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             AI-powered insights into the latest cybersecurity threats, tactics, and techniques.
           </p>
         </header>
 
         <Card className="shadow-xl border-primary/20">
           <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-                <BrainCircuit className="h-6 w-6 text-primary" />
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                <BrainCircuit className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 AI-Generated Trend Summary
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               Analysis based on recent global cybersecurity intelligence.
             </CardDescription>
           </CardHeader>
