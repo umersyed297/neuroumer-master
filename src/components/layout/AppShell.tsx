@@ -36,6 +36,7 @@ import { useTheme } from 'next-themes';
 import { MaintenanceDialog } from '@/components/layout/MaintenanceDialog';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
+import { AdminMobileBottomNav } from '@/components/layout/AdminMobileBottomNav';
 
 const STATIC_PROFILE_PIC_URL = '/images/rr.png';
 
@@ -176,7 +177,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="pb-20 pt-4 px-3 min-h-screen bg-background w-full max-w-full">
           {children}
         </main>
-        <MobileBottomNav />
+        {isAdminPage ? <AdminMobileBottomNav /> : <MobileBottomNav />}
       </div>
     );
   }
